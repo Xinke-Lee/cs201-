@@ -12,6 +12,11 @@ from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 
+"""一个基于浏览器的多边形标注小工具。
+
+"""
+
+
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 
 
@@ -27,6 +32,7 @@ def labels_root_for_image(image_path: pathlib.Path, images_root: pathlib.Path, l
 
 
 def bbox_to_polygon(cx: float, cy: float, width: float, height: float) -> list[list[float]]:
+    # 把矩形框转成四边形点集，方便统一按多边形格式保存。
     half_width = width / 2.0
     half_height = height / 2.0
     return [
@@ -38,6 +44,7 @@ def bbox_to_polygon(cx: float, cy: float, width: float, height: float) -> list[l
 
 
 def parse_annotation_line(raw_line: str) -> dict | None:
+    # 兼容两类输入：4 个数的框标注，或多边形点标注。
     line = raw_line.strip()
     if not line:
         return None
@@ -82,29 +89,29 @@ def save_annotations(label_path: pathlib.Path, annotations: list[dict]) -> None:
     label_path.parent.mkdir(parents=True, exist_ok=True)
     lines: list[str] = []
     for annotation in annotations:
-      class_id = int(annotation.get("class_id", 0))
-      points = annotation.get("points", [])
-      if not isinstance(points, list) or len(points) < 3:
-          continue
+        class_id = int(annotation.get("class_id", 0))
+        points = annotation.get("points", [])
+        if not isinstance(points, list) or len(points) < 3:
+            continue
 
-      normalized: list[str] = [str(class_id)]
-      valid_point_count = 0
-      for point in points:
-          if not isinstance(point, (list, tuple)) or len(point) != 2:
-              continue
-          try:
-              x = float(point[0])
-              y = float(point[1])
-          except (TypeError, ValueError):
-              continue
-          x = max(0.0, min(1.0, x))
-          y = max(0.0, min(1.0, y))
-          normalized.append(f"{x:.6f}")
-          normalized.append(f"{y:.6f}")
-          valid_point_count += 1
+        normalized: list[str] = [str(class_id)]
+        valid_point_count = 0
+        for point in points:
+            if not isinstance(point, (list, tuple)) or len(point) != 2:
+                continue
+            try:
+                x = float(point[0])
+                y = float(point[1])
+            except (TypeError, ValueError):
+                continue
+            x = max(0.0, min(1.0, x))
+            y = max(0.0, min(1.0, y))
+            normalized.append(f"{x:.6f}")
+            normalized.append(f"{y:.6f}")
+            valid_point_count += 1
 
-      if valid_point_count >= 3:
-          lines.append(" ".join(normalized))
+        if valid_point_count >= 3:
+            lines.append(" ".join(normalized))
 
     label_path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
 

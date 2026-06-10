@@ -10,6 +10,10 @@ import cv2
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".webm"}
 
 
+"""从视频里抽帧，生成 YOLO 训练图片集。
+"""
+
+
 def iter_videos(video_root: Path) -> list[Path]:
     return sorted(
         path for path in video_root.rglob("*") if path.is_file() and path.suffix.lower() in VIDEO_EXTENSIONS
@@ -17,6 +21,7 @@ def iter_videos(video_root: Path) -> list[Path]:
 
 
 def choose_split(video_path: Path, val_ratio: float) -> str:
+    # 用文件名哈希决定 train/val，保证同一个视频始终落到同一集合里。
     digest = hashlib.md5(str(video_path).encode("utf-8")).hexdigest()
     bucket = int(digest[:8], 16) / 0xFFFFFFFF
     return "val" if bucket < val_ratio else "train"
@@ -28,6 +33,7 @@ def extract_frames(
     interval: int,
     max_frames: int | None,
 ) -> tuple[int, int]:
+    # 按固定间隔抽帧，兼顾覆盖度和数据量。
     capture = cv2.VideoCapture(str(video_path))
     if not capture.isOpened():
         raise RuntimeError(f"无法打开视频: {video_path}")

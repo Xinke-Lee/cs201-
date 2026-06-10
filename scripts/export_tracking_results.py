@@ -14,8 +14,13 @@ from ultralytics import YOLO
 ROOT = Path(__file__).resolve().parents[1]
 
 
+"""把单段视频的检测结果导出成表格、标注视频和位移曲线。
+"""
+
+
 def main() -> None:
     """Run with `./.venv/bin/python scripts/export_tracking_results.py`."""
+    # 这个脚本同时服务于“看效果”和“留数据”两个目标。
     parser = argparse.ArgumentParser(description='Export annotated video and displacement curve from one video')
     parser.add_argument('--weights', type=Path, default=ROOT / 'marker_tracking' / 'run_1' / 'weights' / 'best.pt', help='Model weights')
     parser.add_argument('--video', type=Path, required=True, help='Input video path')
@@ -58,6 +63,7 @@ def main() -> None:
             x_center = y_center = y_real = None
 
             if results and results[0].boxes is not None and len(results[0].boxes) > 0:
+                # 选置信度最高的框，避免一帧多目标时结果混乱。
                 boxes = results[0].boxes
                 best_index = int(boxes.conf.argmax().item())
                 best_box = boxes[best_index]

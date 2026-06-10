@@ -8,8 +8,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
+"""把像素坐标换算成物理坐标的小脚本。
+"""
+
+
 def main() -> None:
     """Run with `./.venv/bin/python scripts/convert_physical.py`."""
+    # 这里的核心思想是：先读轨迹，再按比例尺换算成毫米。
     parser = argparse.ArgumentParser(description="Convert pixel trajectory to physical coordinates")
     parser.add_argument("--input", type=Path, default=ROOT / "outputs" / "trajectory.csv", help="Trajectory CSV file")
     parser.add_argument("--output", type=Path, default=ROOT / "outputs" / "trajectory_physical.csv", help="Converted CSV output")

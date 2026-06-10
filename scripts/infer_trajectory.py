@@ -11,8 +11,13 @@ from ultralytics import YOLO
 ROOT = Path(__file__).resolve().parents[1]
 
 
+"""对视频逐帧推理，导出目标中心点轨迹。
+"""
+
+
 def main() -> None:
     """Run with `./.venv/bin/python scripts/infer_trajectory.py`."""
+    # 这一步是“做检测”与“做数据分析”之间的接口。
     parser = argparse.ArgumentParser(description="Run YOLO inference on a video and export trajectory centers")
     parser.add_argument("--weights", type=Path, default=ROOT / "marker_tracking" / "run_1" / "weights" / "best.pt", help="Model weights")
     parser.add_argument("--video", type=Path, required=True, help="Input video path")
@@ -42,6 +47,7 @@ def main() -> None:
             if results:
                 boxes = results[0].boxes
                 if boxes is not None and len(boxes) > 0:
+                    # 取最可信的检测结果作为这一帧的代表。
                     best_index = int(boxes.conf.argmax().item())
                     best_box = boxes[best_index]
                     x1, y1, x2, y2 = best_box.xyxy[0].cpu().numpy().tolist()

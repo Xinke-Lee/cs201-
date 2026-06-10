@@ -8,6 +8,10 @@ from pathlib import Path
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 
 
+"""清洗 YOLO 标签文件的小脚本。
+"""
+
+
 @dataclass
 class LabelReport:
     images: int = 0
@@ -21,6 +25,7 @@ def iter_images(image_dir: Path) -> list[Path]:
 
 
 def clean_label_file(source_path: Path) -> tuple[list[str], list[str]]:
+    # 逐行检查标签内容，保留合法样本并记录问题行。
     cleaned_lines: list[str] = []
     issues: list[str] = []
 
@@ -77,6 +82,7 @@ def process_split(
     allow_empty: bool,
     strict: bool,
 ) -> LabelReport:
+    # 按 train/val 两个子集批量处理，模拟真实训练前的数据整理流程。
     report = LabelReport()
 
     image_dir = images_root / split_name
